@@ -1,0 +1,93 @@
+version: "3.7"
+
+services: 
+    aapp:
+        build:
+            context: ./
+            dockerfile: Dockerfile 
+        image: phpapp
+        container_name: aapp
+        restart: unless-stopped
+        volumes: 
+            - ./src/:/var/www 
+    
+    # enginx:
+    #     build: 
+    #         context: ./nginx.conf
+    #         dockerfile: Dockerfile
+    #     image: nginx:1.20-alpine
+    #     container_name: enginx
+    #     restart: unless-stopped
+    #     ports: 
+    #         - "80:80"
+    #     volumes: 
+    #         - ./src/:/var/www
+    #         - ./nginx.conf/:/etc/nginx/conf.d/
+    #         - ./nginx.conf/logs/:/var/log/nginx/
+    #     depends_on: 
+    #         - aapp
+    enginx:
+        image: nginx:1.20-alpine
+        container_name: enginx
+        restart: unless-stopped
+        ports: 
+            - "80:80"
+        volumes: 
+            - ./src/:/var/www
+            - ./nginx.conf/:/etc/nginx/conf.d/
+            - ./nginx.conf/logs/:/var/log/nginx/
+        depends_on: 
+            - aapp
+
+    db:
+        image: mysql:5.7
+        container_name: db
+        restart: unless-stopped
+        environment: 
+            MYSQL_ROOT_PASSWORD: mysqlpwd
+            MYSQL_USER: sokvan
+            MYSQL_PASSWORD: adminer
+            MYSQL_DATABASE: vancolor
+        ports: 
+            - "3306:3306"   
+        volumes:
+            - ./db/:/var/lib/mysql/
+            - ./nginx.conf/mysql/:/var/log/mysql/   
+    
+    # phpadmin:
+    #     image: phpmyadmin:fpm-alpine
+    #     container_name: phpadmin
+    #     depends_on: 
+    #         - db
+    #     links:
+    #         - db   
+    #     ports:
+    #         - "9000:80"
+    #     environment: 
+    #         # MYSQL_ROOT_PASSWORD: mysqlpwd
+    #         # PMA_HOST: db
+    #         # PMA_PORT: 3306
+    #         # PMA_USER: root
+    #         # PMA_PASSWORD: mysqlpwd
+    #         # MYSQL_USER: sokvan
+    #         # MYSQL_PASSWORD: mysqlpwd  
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        container_name: phpmyadmin
+        depends_on: 
+            - db
+        # links:
+        #     - db
+        environment:
+            # PMA_HOST: db
+            # PMA_PORT: 3306
+            # PMA_USER: root
+            # PMA_PASSWORD: mysqlpwd
+            MYSQL_ROOT_PASSWORD: mysqlpwd
+            # MYSQL_USER: sokvan
+            # MYSQL_PASSWORD: adminer
+        ports:
+          - "5000:80"
+        
+
+
